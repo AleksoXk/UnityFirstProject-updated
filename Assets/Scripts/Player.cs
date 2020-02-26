@@ -2,72 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour //Ogólnie to tu mamy podstawowy movement gracza. Trzeba pamiętać żeby wyłączyć grawitację 
+											//oraz ustawić blokadę osi 'z' przy Playerze. Do animacji wystarczy dodać parę linijek, 
+
 {
+	public int maxHealth = 4; //zycie ustawiane                                      //większa zabawa jest w samym Unity oraz w wykonaniu spriteów (z 4 na animację będą ok)
+	public int currentHealth;
 
-    public float jumpHeight;
-    public float moveSpeed;
+	public HealthBar healthBar;
 
-    public Transform groundCheck;
-    public float groundCheckRadius;
-    public LayerMask WhatIsGround;
-    private bool grounded;
-    private bool doubleJump;
+	public float moveSpeed = 5f;
+	public Rigidbody2D rb;
+	Vector2 movement;
 
-    private Animator anim;
+	private void Start()
+	{
+		currentHealth = maxHealth;
+		healthBar.MaximumHealth(maxHealth);
+	}
 
+	void Update()
+	{
+		movement.x = Input.GetAxisRaw("Horizontal");
+		movement.y = Input.GetAxisRaw("Vertical");
+		if (Input.GetKeyDown(KeyCode.Space))
+			TakeDamage(1);
+	}
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        anim = GetComponent<Animator>();
-    }
+	void FixedUpdate()
+	{
+		rb.MovePosition(rb.position + movement * moveSpeed * Time.fixedDeltaTime);
+	}
 
-    void FixedUpdate()
-    {
-        grounded = Physics2D.OverlapCircle (groundCheck.position, groundCheckRadius, WhatIsGround);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (grounded)
-            doubleJump = false;
-        anim.SetBool("Grounded", grounded);
-        if (Input.GetKeyDown(KeyCode.W)&& grounded)
-        {
-            Jump();
-        }
-
-        if (Input.GetKeyDown(KeyCode.W)&& !grounded && !doubleJump)
-        {
-            Jump();
-            doubleJump = true;
-        }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            GetComponent<Rigidbody2D>().velocity = new Vector2(moveSpeed, GetComponent<Rigidbody2D>().velocity.y);
-
-        }
-        if(Input.GetKey(KeyCode.A))
-        {
-            GetComponent<Rigidbody2D>().velocity = new Vector2(-moveSpeed, GetComponent<Rigidbody2D>().velocity.y);
-
-        }
-
-        anim.SetFloat("Speed", Mathf.Abs(GetComponent<Rigidbody2D>().velocity.x));
-        if (GetComponent<Rigidbody2D>().velocity.x > 0)
-        {
-            transform.localScale = new Vector3(1f, 1f, 1f);
-        }
-        else if(GetComponent<Rigidbody2D>().velocity.x < 0)
-            transform.localScale = new Vector3(-1f, 1f, 1f);
-    }
-
-    void Jump()
-    {
-        GetComponent<Rigidbody2D>().velocity = new Vector2(0, jumpHeight);
-    }
-
+	void TakeDamage(int damage)
+	{
+		currentHealth -= damage;
+		healthBar.SetHealth(currentHealth);
+	}
 }
